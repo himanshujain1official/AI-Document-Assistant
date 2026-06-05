@@ -11,7 +11,8 @@ st.set_page_config(
     layout="centered"
 )
 
-api_key = "AIzaSyAaTPCYVLr6NthIrQds8mO8BfyJ9_XBkA0"
+load_dotenv()
+api_key = os.getenv("GOOGLE_API_KEY")
 
 
 genai.configure(api_key=api_key)
