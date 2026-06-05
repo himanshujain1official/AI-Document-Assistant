@@ -1,0 +1,50 @@
+import streamlit as st
+import google.generativeai as genai
+import os
+from PyPDF2 import PdfReader
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("GOOGLE_API_KEY")
+
+genai.configure(api_key=api_key)
+st.title("AI Document Assistant")
+
+def get_pdf_text(pdf_file):
+    pdf_reader = PdfReader(pdf_file)
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text() + "\n"
+    return text
+
+def get_gemini_summary(text):
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    prompt=f"You are an AI expert document analyst. Read the following document and provide a summary in bullet points as simple as possible:\n\n{text}\n\nSummary:"
+    response = model.generate_content(prompt)
+    return response.text
+
+st.set_page_config(page_title="AI Document Assistant",
+                     page_icon="📄",
+                     layout="centered",
+                     initial_sidebar_state="auto")
+
+st.header("Your Document Assistant")
+st.write("Upload a PDF document & the AI will provide a concise summary.")
+uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
+
+if uploaded_file is not None:
+    with st.spinner("Processing..."):
+        st.success("File uploaded successfully!")
+        
+    if st.button("Generate Summary"):
+        with st.spinner("Generating summary..."):
+            try:
+                raw_text = get_pdf_text(uploaded_file)
+                summary_result = get_gemini_summary(raw_text)
+                summary = summary_result
+                st.success("Summary generated successfully!")
+                st.markdown("Document Summary:")
+                st.write(summary_result)
+                
+            except Exception as e:
+                  st.error(f"An Error occurred: {e}")
